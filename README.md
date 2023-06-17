@@ -5,6 +5,10 @@ Testing out [iterative alpha deblending](https://arxiv.org/abs/2305.03486)
 
 ## Implementing [RePaint](https://arxiv.org/abs/2201.09865)
 
+Here are a few visualiations of the inpainting process for a batch of images at different levels of $U$. The higher the $U$, the more the masked and unmasked regions are "homogenized". 
+
+The top is the original, the middle is the image with the mask and the bottom is the inpainted image. 
+
 ### $U=1$ 
 
 ![U=1](https://github.com/AditMeh/iterative-alpha-deblending/blob/main/visualizations/test_1.png?raw=true)
