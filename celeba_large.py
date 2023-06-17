@@ -51,17 +51,17 @@ def train():
 
     optimizer = Adam(model.parameters(), lr=lr)
 
-    # wandb.login()
+    wandb.login()
 
-    # run = wandb.init(
-    #     # Set the project where this run will be logged
-    #     project="iterative alpha deblending",
-    #     # Track hyperparameters and run metadata
-    #     config={
-    #         "learning_rate": lr,
-    #         "epochs": epochs,
-    #     },
-    #     name="celeba_256")
+    run = wandb.init(
+        # Set the project where this run will be logged
+        project="iterative alpha deblending",
+        # Track hyperparameters and run metadata
+        config={
+            "learning_rate": lr,
+            "epochs": epochs,
+        },
+        name="celeba_256")
 
     
     for epoch in range(1, epochs+1):
@@ -88,7 +88,7 @@ def train():
             loss.backward()
             optimizer.step()
         
-        # wandb.log({"loss": acc/denom})
+        wandb.log({"loss": acc/denom})
 
         print(f'epoch {epoch}, loss {acc/denom}')
         torch.save(model.state_dict(), f'celeba.pt')
@@ -96,12 +96,12 @@ def train():
         randn = torch.randn_like(x_alpha).cuda()
         sampled_imgs = sample(randn, T, model, save = False)
 
-        # images = wandb.Image(
-        #     torchvision.utils.make_grid(sampled_imgs), 
-        #     caption="generated faces"
-        #     )
+        images = wandb.Image(
+            torchvision.utils.make_grid(sampled_imgs), 
+            caption="generated faces"
+            )
             
-        # wandb.log({"generated faces": images})
+        wandb.log({"generated faces": images})
 
 
 
@@ -130,15 +130,15 @@ if __name__ == "__main__":
 
     model = get_model().cuda()
     model.load_state_dict(torch.load("celeba.pt"))
-    # model.eval()
+    model.eval()
 
-    # x_0 = torch.randn(1, 3, 256, 256).cuda()
-    # ret = sample(x_0, T, model)
+    x_0 = torch.randn(1, 3, 256, 256).cuda()
+    ret = sample(x_0, T, model)
 
-    # images = []
-    # for img in sorted(os.listdir("temp_dir/"), key = lambda x: int(x.split(".")[0])):
-    #     images.append(imageio.imread(f'temp_dir/{img}'))
+    images = []
+    for img in sorted(os.listdir("temp_dir/"), key = lambda x: int(x.split(".")[0])):
+        images.append(imageio.imread(f'temp_dir/{img}'))
 
-    # f = 'rgb_video.mp4'
-    # imageio.mimwrite(f, images, fps=30, quality=7)
+    f = 'rgb_video.mp4'
+    imageio.mimwrite(f, images, fps=30, quality=7)
 

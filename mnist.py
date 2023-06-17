@@ -44,7 +44,7 @@ def train():
                                                batch_size=32,
                                                shuffle=True)
     model = get_model().cuda()
-    model.load_state_dict(torch.load("model.pt"))
+    model.load_state_dict(torch.load("mnist.pt"))
 
     optimizer = Adam(model.parameters(), lr=lr)
 
@@ -61,26 +61,36 @@ def train():
         name="mnist")
 
     for epoch in range(1, epochs+1):
-        x_1, _ = next(iter(train_loader))
-        x_1 = x_1.cuda()
-        x_0 = torch.randn(x_1.shape).cuda()
+       for x_1, _ in tqdm.tqdm(train_loader): 
+            x_1 = x_1.cuda()
+            x_0 = torch.randn(x_1.shape).cuda()
 
-        # Broadcast to (B,c,h,w)
-        alpha = x = Uniform(0, 1).sample((x_0.shape[0],)).cuda()
-        alpha_broadcast = alpha[..., None, None, None]
+            # Broadcast to (B,c,h,w)
+            alpha = x = Uniform(0, 1).sample((x_0.shape[0],)).cuda()
+            alpha_broadcast = alpha[..., None, None, None]
 
-        x_alpha = (1-alpha_broadcast) * x_0 + alpha_broadcast * x_1
+            x_alpha = (1-alpha_broadcast) * x_0 + alpha_broadcast * x_1
 
-        pred = model(x_alpha, alpha)['sample']
+            pred = model(x_alpha, alpha)['sample']
 
-        loss = nn.MSELoss()(pred, (x_1 - x_0))
-        wandb.log({"loss": loss.item()})
-        print(f'epoch {epoch}, loss {loss.item()}')
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
+            loss = nn.MSELoss()(pred, (x_1 - x_0))
+            wandb.log({"loss": loss.item()})
+            print(f'epoch {epoch}, loss {loss.item()}')
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
 
-    torch.save(model.state_dict(), "model.pt")
+        randn = torch.randn_like(x_alpha).cuda()
+        sampled_imgs = sample(randn, T, model, save = False)
+
+        images = wandb.Image(
+            torchvision.utils.make_grid(sampled_imgs), 
+            caption="generated generated_numbers"
+            )
+            
+        wandb.log({"generated numbers": images})
+
+        torch.save(model.state_dict(), "mnist.pt")
 
 
 def sample(x_0, T, model):
@@ -105,7 +115,7 @@ if __name__ == "__main__":
     # train()
 
     model = get_model().cuda()
-    model.load_state_dict(torch.load("model.pt"))
+    model.load_state_dict(torch.load("mnist.pt"))
     model.eval()
 
     x_0 = torch.randn(32, 1, 64, 64).cuda()
