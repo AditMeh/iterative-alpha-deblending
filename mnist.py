@@ -12,7 +12,7 @@ import os
 import imageio 
 
 T = 1000
-epochs = 4000
+epochs = 2000
 lr = 1e-4
 
 
@@ -44,7 +44,9 @@ def train():
                                                batch_size=32,
                                                shuffle=True)
     model = get_model().cuda()
-    model.load_state_dict(torch.load("mnist.pt"))
+    
+    if os.path.exists("mnist.pt"):
+        model.load_state_dict(torch.load("mnist.pt"))
 
     optimizer = Adam(model.parameters(), lr=lr)
 
@@ -61,7 +63,7 @@ def train():
         name="mnist")
 
     for epoch in range(1, epochs+1):
-       for x_1, _ in tqdm.tqdm(train_loader): 
+        for x_1, _ in tqdm.tqdm(train_loader): 
             x_1 = x_1.cuda()
             x_0 = torch.randn(x_1.shape).cuda()
 
@@ -84,16 +86,16 @@ def train():
         sampled_imgs = sample(randn, T, model, save = False)
 
         images = wandb.Image(
-            torchvision.utils.make_grid(sampled_imgs), 
-            caption="generated generated_numbers"
-            )
-            
+        torchvision.utils.make_grid(sampled_imgs), 
+        caption="generated generated_numbers"
+        )
+
         wandb.log({"generated numbers": images})
 
         torch.save(model.state_dict(), "mnist.pt")
 
 
-def sample(x_0, T, model):
+def sample(x_0, T, model, save=False):
     if not os.path.exists("temp_dir/"):
         os.mkdir("temp_dir")
 
@@ -107,19 +109,21 @@ def sample(x_0, T, model):
 
             curr = curr + (schedule_future_brod[..., None, None, None] - schedule_curr_brod[...,
                            None, None, None]) * model(curr, schedule_curr_brod)['sample']
-            torchvision.utils.save_image(curr, f'temp_dir/{t}.png')
+            
+            if save:
+                torchvision.utils.save_image(curr, f'temp_dir/{t}.png')
     return curr
 
 
 if __name__ == "__main__":
-    # train()
+    train()
 
     model = get_model().cuda()
     model.load_state_dict(torch.load("mnist.pt"))
     model.eval()
 
     x_0 = torch.randn(32, 1, 64, 64).cuda()
-    ret = sample(x_0, T, model)
+    ret = sample(x_0, T, model, save=True)
 
     images = []
     for img in sorted(os.listdir("temp_dir/"), key = lambda x: int(x.split(".")[0])):
