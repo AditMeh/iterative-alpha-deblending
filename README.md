@@ -46,3 +46,6 @@ The top is the original, the middle is the image with the mask and the bottom is
 ![U=1](https://github.com/AditMeh/iterative-alpha-deblending/blob/main/visualizations/test_9.png?raw=true)
 
 
+## Visualizing the reverse process on MNIST
+
+![alt](https://github.com/AditMeh/iterative-alpha-deblending/blob/main/visualizations/mnist_video.gif?raw=true)
