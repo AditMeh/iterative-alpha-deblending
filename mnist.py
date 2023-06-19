@@ -9,7 +9,8 @@ import torch.nn as nn
 import wandb
 import tqdm
 import os 
-import imageio 
+import imageio
+import shutil
 
 T = 1000
 epochs = 2000
@@ -116,7 +117,7 @@ def sample(x_0, T, model, save=False):
 
 
 if __name__ == "__main__":
-    train()
+    # train()
 
     model = get_model().cuda()
     model.load_state_dict(torch.load("mnist.pt"))
@@ -129,6 +130,8 @@ if __name__ == "__main__":
     for img in sorted(os.listdir("temp_dir/"), key = lambda x: int(x.split(".")[0])):
         images.append(imageio.imread(f'temp_dir/{img}'))
 
-    f = 'video.mp4'
-    imageio.mimwrite(f, images, fps=30, quality=7)
+    f = 'mnist_video.gif'
+    imageio.mimwrite(f, images[::2], fps=25)
+
+    shutil.rmtree("temp_dir/")
 
